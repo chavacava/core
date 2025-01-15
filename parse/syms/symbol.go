@@ -291,10 +291,10 @@ func (sy *Symbol) WriteDoc(out io.Writer, depth int) {
 
 // ClearAST sets the AST pointers to nil for all symbols in this one.
 // otherwise the AST memory is never freed and can get quite large.
-func (sm *Symbol) ClearAST() {
-	sm.AST = nil
-	sm.Children.ClearAST()
-	sm.Types.ClearAST()
+func (sy *Symbol) ClearAST() {
+	sy.AST = nil
+	sy.Children.ClearAST()
+	sy.Types.ClearAST()
 }
 
 // ClearAST sets the AST pointers to nil for all symbols.

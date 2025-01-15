@@ -45,9 +45,9 @@ type Marker struct {
 	EffSize math32.Vector2
 }
 
-func (g *Marker) SVGName() string { return "marker" }
+func (mkr *Marker) SVGName() string { return "marker" }
 
-func (g *Marker) EnforceSVGName() bool { return false }
+func (mkr *Marker) EnforceSVGName() bool { return false }
 
 // MarkerUnits specifies units to use for svg marker elements
 type MarkerUnits int32 //enum: enum
@@ -60,52 +60,52 @@ const (
 
 // RenderMarker renders the marker using given vertex position, angle (in
 // radians), and stroke width
-func (mrk *Marker) RenderMarker(sv *SVG, vertexPos math32.Vector2, vertexAng, strokeWidth float32) {
-	mrk.VertexPos = vertexPos
-	mrk.VertexAngle = vertexAng
-	mrk.StrokeWidth = strokeWidth
-	if mrk.Units == StrokeWidth {
-		mrk.EffSize = mrk.Size.MulScalar(strokeWidth)
+func (mkr *Marker) RenderMarker(sv *SVG, vertexPos math32.Vector2, vertexAng, strokeWidth float32) {
+	mkr.VertexPos = vertexPos
+	mkr.VertexAngle = vertexAng
+	mkr.StrokeWidth = strokeWidth
+	if mkr.Units == StrokeWidth {
+		mkr.EffSize = mkr.Size.MulScalar(strokeWidth)
 	} else {
-		mrk.EffSize = mrk.Size
+		mkr.EffSize = mkr.Size
 	}
 
 	ang := vertexAng
-	if mrk.Orient != "auto" {
-		ang, _ = math32.ParseAngle32(mrk.Orient)
+	if mkr.Orient != "auto" {
+		ang, _ = math32.ParseAngle32(mkr.Orient)
 	}
-	if mrk.ViewBox.Size == (math32.Vector2{}) {
-		mrk.ViewBox.Size = math32.Vec2(3, 3)
+	if mkr.ViewBox.Size == (math32.Vector2{}) {
+		mkr.ViewBox.Size = math32.Vec2(3, 3)
 	}
-	mrk.Transform = math32.Rotate2D(ang).Scale(mrk.EffSize.X/mrk.ViewBox.Size.X, mrk.EffSize.Y/mrk.ViewBox.Size.Y).Translate(-mrk.RefPos.X, -mrk.RefPos.Y)
-	mrk.Transform.X0 += vertexPos.X
-	mrk.Transform.Y0 += vertexPos.Y
+	mkr.Transform = math32.Rotate2D(ang).Scale(mkr.EffSize.X/mkr.ViewBox.Size.X, mkr.EffSize.Y/mkr.ViewBox.Size.Y).Translate(-mkr.RefPos.X, -mkr.RefPos.Y)
+	mkr.Transform.X0 += vertexPos.X
+	mkr.Transform.Y0 += vertexPos.Y
 
-	mrk.Paint.Transform = mrk.Transform
+	mkr.Paint.Transform = mkr.Transform
 
 	// fmt.Println("render marker:", mrk.Name, strokeWidth)
-	mrk.Render(sv)
+	mkr.Render(sv)
 }
 
-func (g *Marker) Render(sv *SVG) {
-	pc := &g.Paint
+func (mkr *Marker) Render(sv *SVG) {
+	pc := &mkr.Paint
 	rs := &sv.RenderState
 	rs.PushTransform(pc.Transform)
 
-	g.RenderChildren(sv)
-	g.BBoxes(sv) // must come after render
+	mkr.RenderChildren(sv)
+	mkr.BBoxes(sv) // must come after render
 
 	rs.PopTransform()
 }
 
-func (g *Marker) BBoxes(sv *SVG) {
-	if g.This == nil {
+func (mkr *Marker) BBoxes(sv *SVG) {
+	if mkr.This == nil {
 		return
 	}
-	ni := g.This.(Node)
-	g.BBox = ni.NodeBBox(sv)
-	g.BBox.Canon()
-	g.VisBBox = sv.Geom.SizeRect().Intersect(g.BBox)
+	ni := mkr.This.(Node)
+	mkr.BBox = ni.NodeBBox(sv)
+	mkr.BBox.Canon()
+	mkr.VisBBox = sv.Geom.SizeRect().Intersect(mkr.BBox)
 }
 
 //////////////////////////////////////////////////////////

@@ -149,8 +149,8 @@ func AsFrame(n tree.Node) *Frame {
 	return nil
 }
 
-func (t *Frame) AsFrame() *Frame {
-	return t
+func (fr *Frame) AsFrame() *Frame {
+	return fr
 }
 
 var _ Layouter = &Frame{}

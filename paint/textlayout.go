@@ -165,35 +165,35 @@ func (tx *Text) PosToRune(pos math32.Vector2) (si, ri int, ok bool) {
 // size, if the text requires more size to fit everything.
 // Font face in styles.Font is used for determining line spacing here.
 // Other versions can do more expensive calculations of variable line spacing as needed.
-func (tr *Text) Layout(txtSty *styles.Text, fontSty *styles.FontRender, ctxt *units.Context, size math32.Vector2) math32.Vector2 {
+func (tx *Text) Layout(txtSty *styles.Text, fontSty *styles.FontRender, ctxt *units.Context, size math32.Vector2) math32.Vector2 {
 	// todo: switch on layout types once others are supported
-	return tr.LayoutStdLR(txtSty, fontSty, ctxt, size)
+	return tx.LayoutStdLR(txtSty, fontSty, ctxt, size)
 }
 
 // LayoutStdLR does basic standard layout of text in LR direction.
-func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctxt *units.Context, size math32.Vector2) math32.Vector2 {
-	if len(tr.Spans) == 0 {
+func (tx *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctxt *units.Context, size math32.Vector2) math32.Vector2 {
+	if len(tx.Spans) == 0 {
 		return math32.Vector2{}
 	}
 
 	// pr := profile.Start("TextLayout")
 	// defer pr.End()
 	//
-	tr.Dir = styles.LRTB
+	tx.Dir = styles.LRTB
 	fontSty.Font = OpenFont(fontSty, ctxt)
 	fht := fontSty.Face.Metrics.Height
-	tr.FontHeight = fht
+	tx.FontHeight = fht
 	dsc := math32.FromFixed(fontSty.Face.Face.Metrics().Descent)
 	lspc := txtSty.EffLineHeight(fht)
-	tr.LineHeight = lspc
+	tx.LineHeight = lspc
 	lpad := (lspc - fht) / 2 // padding above / below text box for centering in line
 
 	maxw := float32(0)
 
 	// first pass gets rune positions and wraps text as needed, and gets max width
 	si := 0
-	for si < len(tr.Spans) {
-		sr := &(tr.Spans[si])
+	for si < len(tx.Spans) {
+		sr := &(tx.Spans[si])
 		if err := sr.IsValid(); err != nil {
 			si++
 			continue
@@ -213,23 +213,23 @@ func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctx
 				wp := sr.FindWrapPosLR(size.X, ssz.X)
 				if wp > 0 && wp < len(sr.Text)-1 {
 					nsr := sr.SplitAtLR(wp)
-					tr.InsertSpan(si+1, nsr)
+					tx.InsertSpan(si+1, nsr)
 					ssz = sr.SizeHV()
 					ssz.X += sr.RelPos.X
 					if ssz.X > maxw {
 						maxw = ssz.X
 					}
 					si++
-					if si >= len(tr.Spans) {
+					if si >= len(tx.Spans) {
 						break
 					}
-					sr = &(tr.Spans[si]) // keep going with nsr
+					sr = &(tx.Spans[si]) // keep going with nsr
 					sr.SetRunePosLR(txtSty.LetterSpacing.Dots, txtSty.WordSpacing.Dots, fontSty.Face.Metrics.Ch, txtSty.TabSize)
 					ssz = sr.SizeHV()
 
 					// fixup links
-					for li := range tr.Links {
-						tl := &tr.Links[li]
+					for li := range tx.Links {
+						tl := &tx.Links[li]
 						if tl.StartSpan == si-1 {
 							if tl.StartIndex >= wp {
 								tl.StartIndex -= wp
@@ -271,13 +271,13 @@ func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctx
 	// have maxw, can do alignment cases..
 
 	// make sure links are still in range
-	for li := range tr.Links {
-		tl := &tr.Links[li]
-		stsp := tr.Spans[tl.StartSpan]
+	for li := range tx.Links {
+		tl := &tx.Links[li]
+		stsp := tx.Spans[tl.StartSpan]
 		if tl.StartIndex >= len(stsp.Text) {
 			tl.StartIndex = len(stsp.Text) - 1
 		}
-		edsp := tr.Spans[tl.EndSpan]
+		edsp := tx.Spans[tl.EndSpan]
 		if tl.EndIndex >= len(edsp.Text) {
 			tl.EndIndex = len(edsp.Text) - 1
 		}
@@ -288,10 +288,10 @@ func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctx
 	}
 
 	// vertical alignment
-	nsp := len(tr.Spans)
+	nsp := len(tx.Spans)
 	npara := 0
 	for si := 1; si < nsp; si++ {
-		sr := &(tr.Spans[si])
+		sr := &(tx.Spans[si])
 		if sr.IsNewPara() {
 			npara++
 		}
@@ -301,8 +301,8 @@ func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctx
 	if vht > size.Y {
 		size.Y = vht
 	}
-	tr.BBox.Min.SetZero()
-	tr.BBox.Max = math32.Vec2(maxw, vht)
+	tx.BBox.Min.SetZero()
+	tx.BBox.Max = math32.Vec2(maxw, vht)
 
 	vpad := float32(0) // padding at top to achieve vertical alignment
 	vextra := size.Y - vht
@@ -318,8 +318,8 @@ func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctx
 	vbaseoff := lspc - lpad - dsc // offset of baseline within overall line
 	vpos := vpad + vbaseoff
 
-	for si := range tr.Spans {
-		sr := &(tr.Spans[si])
+	for si := range tx.Spans {
+		sr := &(tx.Spans[si])
 		if si > 0 && sr.IsNewPara() {
 			vpos += txtSty.ParaSpacing.Dots
 		}
@@ -344,7 +344,7 @@ func (tr *Text) LayoutStdLR(txtSty *styles.Text, fontSty *styles.FontRender, ctx
 // Transform applies given 2D transform matrix to the text character rotations,
 // scaling, and positions, so that the text is rendered according to that transform.
 // The fontSty is the font style used for specifying the font originally.
-func (tr *Text) Transform(mat math32.Matrix2, fontSty *styles.FontRender, ctxt *units.Context) {
+func (tx *Text) Transform(mat math32.Matrix2, fontSty *styles.FontRender, ctxt *units.Context) {
 	orgsz := fontSty.Size
 	tmpsty := styles.FontRender{}
 	tmpsty = *fontSty
@@ -354,8 +354,8 @@ func (tr *Text) Transform(mat math32.Matrix2, fontSty *styles.FontRender, ctxt *
 	if scalex == 1 {
 		scalex = 0
 	}
-	for si := range tr.Spans {
-		sr := &(tr.Spans[si])
+	for si := range tx.Spans {
+		sr := &(tx.Spans[si])
 		sr.RelPos = mat.MulVector2AsVector(sr.RelPos)
 		sr.LastPos = mat.MulVector2AsVector(sr.LastPos)
 		for i := range sr.Render {
@@ -372,15 +372,15 @@ func (tr *Text) Transform(mat math32.Matrix2, fontSty *styles.FontRender, ctxt *
 			rn.ScaleX = scalex
 		}
 	}
-	tr.BBox = tr.BBox.MulMatrix2(mat)
+	tx.BBox = tx.BBox.MulMatrix2(mat)
 }
 
 // UpdateBBox updates the overall text bounding box
 // based on actual glyph bounding boxes.
-func (tr *Text) UpdateBBox() {
-	tr.BBox.SetEmpty()
-	for si := range tr.Spans {
-		sr := &(tr.Spans[si])
+func (tx *Text) UpdateBBox() {
+	tx.BBox.SetEmpty()
+	for si := range tx.Spans {
+		sr := &(tx.Spans[si])
 		var curfc font.Face
 		for i := range sr.Render {
 			r := sr.Text[i]
@@ -392,7 +392,7 @@ func (tr *Text) UpdateBBox() {
 			if ok {
 				gb := math32.B2FromFixed(gbf)
 				gb.Translate(rn.RelPos)
-				tr.BBox.ExpandByBox(gb)
+				tx.BBox.ExpandByBox(gb)
 			}
 		}
 	}

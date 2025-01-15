@@ -317,26 +317,26 @@ out:
 	return char, token
 }
 
-func bibtexParse(bibtexlex bibtexLexer) int {
-	return bibtexNewParser().Parse(bibtexlex)
+func bibtexParse(lex bibtexLexer) int {
+	return bibtexNewParser().Parse(lex)
 }
 
-func (bibtexrcvr *bibtexParserImpl) Parse(bibtexlex bibtexLexer) int {
+func (p *bibtexParserImpl) Parse(bibtexlex bibtexLexer) int {
 	var bibtexn int
 	var bibtexVAL bibtexSymType
 	var bibtexDollar []bibtexSymType
 	_ = bibtexDollar // silence set and not used
-	bibtexS := bibtexrcvr.stack[:]
+	bibtexS := p.stack[:]
 
 	Nerrs := 0   /* number of errors */
 	Errflag := 0 /* error recovery flag */
 	bibtexstate := 0
-	bibtexrcvr.char = -1
+	p.char = -1
 	bibtextoken := -1 // bibtexrcvr.char translated into internal numbering
 	defer func() {
 		// Make sure we report no lookahead when not parsing.
 		bibtexstate = -1
-		bibtexrcvr.char = -1
+		p.char = -1
 		bibtextoken = -1
 	}()
 	bibtexp := -1
@@ -368,8 +368,8 @@ bibtexnewstate:
 	if bibtexn <= bibtexFlag {
 		goto bibtexdefault /* simple state */
 	}
-	if bibtexrcvr.char < 0 {
-		bibtexrcvr.char, bibtextoken = bibtexlex1(bibtexlex, &bibtexrcvr.lval)
+	if p.char < 0 {
+		p.char, bibtextoken = bibtexlex1(bibtexlex, &p.lval)
 	}
 	bibtexn += bibtextoken
 	if bibtexn < 0 || bibtexn >= bibtexLast {
@@ -377,9 +377,9 @@ bibtexnewstate:
 	}
 	bibtexn = bibtexAct[bibtexn]
 	if bibtexChk[bibtexn] == bibtextoken { /* valid shift */
-		bibtexrcvr.char = -1
+		p.char = -1
 		bibtextoken = -1
-		bibtexVAL = bibtexrcvr.lval
+		bibtexVAL = p.lval
 		bibtexstate = bibtexn
 		if Errflag > 0 {
 			Errflag--
@@ -391,8 +391,8 @@ bibtexdefault:
 	/* default state action */
 	bibtexn = bibtexDef[bibtexstate]
 	if bibtexn == -2 {
-		if bibtexrcvr.char < 0 {
-			bibtexrcvr.char, bibtextoken = bibtexlex1(bibtexlex, &bibtexrcvr.lval)
+		if p.char < 0 {
+			p.char, bibtextoken = bibtexlex1(bibtexlex, &p.lval)
 		}
 
 		/* look through exception table */
@@ -455,7 +455,7 @@ bibtexdefault:
 			if bibtextoken == bibtexEofCode {
 				goto ret1
 			}
-			bibtexrcvr.char = -1
+			p.char = -1
 			bibtextoken = -1
 			goto bibtexnewstate /* try again in the same state */
 		}

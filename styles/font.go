@@ -450,7 +450,7 @@ func (fr *FontRender) SetStyleProperties(parent *FontRender, properties map[stri
 	fr.StyleRenderFromProperties(parent, properties, ctxt)
 }
 
-func (fs *FontRender) StyleRenderFromProperties(parent *FontRender, properties map[string]any, ctxt colors.Context) {
+func (fr *FontRender) StyleRenderFromProperties(parent *FontRender, properties map[string]any, ctxt colors.Context) {
 	for key, val := range properties {
 		if len(key) == 0 {
 			continue
@@ -459,7 +459,7 @@ func (fs *FontRender) StyleRenderFromProperties(parent *FontRender, properties m
 			continue
 		}
 		if sfunc, ok := styleFontRenderFuncs[key]; ok {
-			sfunc(fs, key, val, parent, ctxt)
+			sfunc(fr, key, val, parent, ctxt)
 		}
 	}
 }

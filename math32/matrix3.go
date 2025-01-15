@@ -188,16 +188,16 @@ func (m *Matrix3) SetMulScalar(s float32) {
 
 // MulVector2AsVector multiplies the Vector2 as a vector without adding translations.
 // This is for directional vectors and not points.
-func (a Matrix3) MulVector2AsVector(v Vector2) Vector2 {
-	tx := a[0]*v.X + a[1]*v.Y
-	ty := a[3]*v.X + a[4]*v.Y
+func (m Matrix3) MulVector2AsVector(v Vector2) Vector2 {
+	tx := m[0]*v.X + m[1]*v.Y
+	ty := m[3]*v.X + m[4]*v.Y
 	return Vec2(tx, ty)
 }
 
 // MulVector2AsPoint multiplies the Vector2 as a point, including adding translations.
-func (a Matrix3) MulVector2AsPoint(v Vector2) Vector2 {
-	tx := a[0]*v.X + a[1]*v.Y + a[2]
-	ty := a[3]*v.X + a[4]*v.Y + a[5]
+func (m Matrix3) MulVector2AsPoint(v Vector2) Vector2 {
+	tx := m[0]*v.X + m[1]*v.Y + m[2]
+	ty := m[3]*v.X + m[4]*v.Y + m[5]
 	return Vec2(tx, ty)
 }
 

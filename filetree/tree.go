@@ -114,17 +114,17 @@ func (ft *Tree) Init() {
 	})
 }
 
-func (fv *Tree) Destroy() {
-	if fv.watcher != nil {
-		fv.watcher.Close()
-		fv.watcher = nil
+func (ft *Tree) Destroy() {
+	if ft.watcher != nil {
+		ft.watcher.Close()
+		ft.watcher = nil
 	}
-	if fv.doneWatcher != nil {
-		fv.doneWatcher <- true
-		close(fv.doneWatcher)
-		fv.doneWatcher = nil
+	if ft.doneWatcher != nil {
+		ft.doneWatcher <- true
+		close(ft.doneWatcher)
+		ft.doneWatcher = nil
 	}
-	fv.Tree.Destroy()
+	ft.Tree.Destroy()
 }
 
 func (ft *Tree) AsFileTree() *Tree {

@@ -111,25 +111,25 @@ type NodeBase struct {
 	isDef bool
 }
 
-func (g *NodeBase) AsNodeBase() *NodeBase {
-	return g
+func (n *NodeBase) AsNodeBase() *NodeBase {
+	return n
 }
 
-func (g *NodeBase) SVGName() string {
+func (n *NodeBase) SVGName() string {
 	return "base"
 }
 
-func (g *NodeBase) EnforceSVGName() bool {
+func (n *NodeBase) EnforceSVGName() bool {
 	return true
 }
 
-func (g *NodeBase) SetPos(pos math32.Vector2) {
+func (n *NodeBase) SetPos(pos math32.Vector2) {
 }
 
-func (g *NodeBase) SetSize(sz math32.Vector2) {
+func (n *NodeBase) SetSize(sz math32.Vector2) {
 }
 
-func (g *NodeBase) LocalBBox() math32.Box2 {
+func (n *NodeBase) LocalBBox() math32.Box2 {
 	bb := math32.Box2{}
 	return bb
 }
@@ -138,37 +138,37 @@ func (n *NodeBase) BaseInterface() reflect.Type {
 	return reflect.TypeOf((*NodeBase)(nil)).Elem()
 }
 
-func (g *NodeBase) PaintStyle() *styles.Paint {
-	return &g.Paint
+func (n *NodeBase) PaintStyle() *styles.Paint {
+	return &n.Paint
 }
 
-func (g *NodeBase) Init() {
-	g.Paint.Defaults()
+func (n *NodeBase) Init() {
+	n.Paint.Defaults()
 }
 
 // SetColorProperties sets color property from a string representation.
 // It breaks color alpha out as opacity.  prop is either "stroke" or "fill"
-func (g *NodeBase) SetColorProperties(prop, color string) {
+func (n *NodeBase) SetColorProperties(prop, color string) {
 	clr := errors.Log1(colors.FromString(color))
-	g.SetProperty(prop+"-opacity", fmt.Sprintf("%g", float32(clr.A)/255))
+	n.SetProperty(prop+"-opacity", fmt.Sprintf("%g", float32(clr.A)/255))
 	// we have consumed the A via opacity, so we reset it to 255
 	clr.A = 255
-	g.SetProperty(prop, colors.AsHex(clr))
+	n.SetProperty(prop, colors.AsHex(clr))
 }
 
 // ParTransform returns the full compounded 2D transform matrix for all
 // of the parents of this node.  If self is true, then include our
 // own transform too.
-func (g *NodeBase) ParTransform(self bool) math32.Matrix2 {
+func (n *NodeBase) ParTransform(self bool) math32.Matrix2 {
 	pars := []Node{}
 	xf := math32.Identity2()
-	n := g.This.(Node)
+	node := n.This.(Node)
 	for {
-		if n.AsTree().Parent == nil {
+		if node.AsTree().Parent == nil {
 			break
 		}
-		n = n.AsTree().Parent.(Node)
-		pars = append(pars, n)
+		node = node.AsTree().Parent.(Node)
+		pars = append(pars, node)
 	}
 	np := len(pars)
 	if np > 0 {
@@ -179,22 +179,22 @@ func (g *NodeBase) ParTransform(self bool) math32.Matrix2 {
 		xf.SetMul(n.AsNodeBase().PaintStyle().Transform)
 	}
 	if self {
-		xf.SetMul(g.Paint.Transform)
+		xf.SetMul(n.Paint.Transform)
 	}
 	return xf
 }
 
 // ApplyTransform applies the given 2D transform to the geometry of this node
 // this just does a direct transform multiplication on coordinates.
-func (g *NodeBase) ApplyTransform(sv *SVG, xf math32.Matrix2) {
+func (n *NodeBase) ApplyTransform(sv *SVG, xf math32.Matrix2) {
 }
 
 // DeltaTransform computes the net transform matrix for given delta transform parameters
 // and the transformed version of the reference point.  If self is true, then
 // include the current node self transform, otherwise don't.  Groups do not
 // but regular rendering nodes do.
-func (g *NodeBase) DeltaTransform(trans math32.Vector2, scale math32.Vector2, rot float32, pt math32.Vector2, self bool) (math32.Matrix2, math32.Vector2) {
-	mxi := g.ParTransform(self)
+func (n *NodeBase) DeltaTransform(trans math32.Vector2, scale math32.Vector2, rot float32, pt math32.Vector2, self bool) (math32.Matrix2, math32.Vector2) {
+	mxi := n.ParTransform(self)
 	mxi = mxi.Inverse()
 	lpt := mxi.MulVector2AsPoint(pt)
 	ldel := mxi.MulVector2AsVector(trans)
@@ -209,42 +209,42 @@ func (g *NodeBase) DeltaTransform(trans math32.Vector2, scale math32.Vector2, ro
 // so must be transformed into local coords first.
 // Point is upper left corner of selection box that anchors the translation and scaling,
 // and for rotation it is the center point around which to rotate
-func (g *NodeBase) ApplyDeltaTransform(sv *SVG, trans math32.Vector2, scale math32.Vector2, rot float32, pt math32.Vector2) {
+func (n *NodeBase) ApplyDeltaTransform(sv *SVG, trans math32.Vector2, scale math32.Vector2, rot float32, pt math32.Vector2) {
 }
 
 // WriteTransform writes the node transform to slice at starting index.
 // slice must already be allocated sufficiently.
-func (g *NodeBase) WriteTransform(dat []float32, idx int) {
-	dat[idx+0] = g.Paint.Transform.XX
-	dat[idx+1] = g.Paint.Transform.YX
-	dat[idx+2] = g.Paint.Transform.XY
-	dat[idx+3] = g.Paint.Transform.YY
-	dat[idx+4] = g.Paint.Transform.X0
-	dat[idx+5] = g.Paint.Transform.Y0
+func (n *NodeBase) WriteTransform(dat []float32, idx int) {
+	dat[idx+0] = n.Paint.Transform.XX
+	dat[idx+1] = n.Paint.Transform.YX
+	dat[idx+2] = n.Paint.Transform.XY
+	dat[idx+3] = n.Paint.Transform.YY
+	dat[idx+4] = n.Paint.Transform.X0
+	dat[idx+5] = n.Paint.Transform.Y0
 }
 
 // ReadTransform reads the node transform from slice at starting index.
-func (g *NodeBase) ReadTransform(dat []float32, idx int) {
-	g.Paint.Transform.XX = dat[idx+0]
-	g.Paint.Transform.YX = dat[idx+1]
-	g.Paint.Transform.XY = dat[idx+2]
-	g.Paint.Transform.YY = dat[idx+3]
-	g.Paint.Transform.X0 = dat[idx+4]
-	g.Paint.Transform.Y0 = dat[idx+5]
+func (n *NodeBase) ReadTransform(dat []float32, idx int) {
+	n.Paint.Transform.XX = dat[idx+0]
+	n.Paint.Transform.YX = dat[idx+1]
+	n.Paint.Transform.XY = dat[idx+2]
+	n.Paint.Transform.YY = dat[idx+3]
+	n.Paint.Transform.X0 = dat[idx+4]
+	n.Paint.Transform.Y0 = dat[idx+5]
 }
 
 // WriteGeom writes the geometry of the node to a slice of floating point numbers
 // the length and ordering of which is specific to each node type.
 // Slice must be passed and will be resized if not the correct length.
-func (g *NodeBase) WriteGeom(sv *SVG, dat *[]float32) {
+func (n *NodeBase) WriteGeom(sv *SVG, dat *[]float32) {
 	*dat = slicesx.SetLength(*dat, 6)
-	g.WriteTransform(*dat, 0)
+	n.WriteTransform(*dat, 0)
 }
 
 // ReadGeom reads the geometry of the node from a slice of floating point numbers
 // the length and ordering of which is specific to each node type.
-func (g *NodeBase) ReadGeom(sv *SVG, dat []float32) {
-	g.ReadTransform(dat, 0)
+func (n *NodeBase) ReadGeom(sv *SVG, dat []float32) {
+	n.ReadTransform(dat, 0)
 }
 
 // SVGWalkDown does [tree.NodeBase.WalkDown] on given node using given walk function
@@ -312,31 +312,31 @@ func NodesContainingPoint(n Node, pt image.Point, leavesOnly bool) []Node {
 // Standard Node infrastructure
 
 // Style styles the Paint values directly from node properties
-func (g *NodeBase) Style(sv *SVG) {
-	pc := &g.Paint
+func (n *NodeBase) Style(sv *SVG) {
+	pc := &n.Paint
 	pc.Defaults()
 	ctxt := colors.Context(sv)
 	pc.StyleSet = false // this is always first call, restart
 
 	var parCSSAgg map[string]any
-	if g.Parent != nil { // && g.Par != sv.Root.This
-		pn := g.Parent.(Node)
+	if n.Parent != nil { // && g.Par != sv.Root.This
+		pn := n.Parent.(Node)
 		parCSSAgg = pn.AsNodeBase().CSSAgg
 		pp := pn.AsNodeBase().PaintStyle()
 		pc.CopyStyleFrom(pp)
-		pc.SetStyleProperties(pp, g.Properties, ctxt)
+		pc.SetStyleProperties(pp, n.Properties, ctxt)
 	} else {
-		pc.SetStyleProperties(nil, g.Properties, ctxt)
+		pc.SetStyleProperties(nil, n.Properties, ctxt)
 	}
 	pc.ToDotsImpl(&pc.UnitContext) // we always inherit parent's unit context -- SVG sets it once-and-for-all
 
 	if parCSSAgg != nil {
-		AggCSS(&g.CSSAgg, parCSSAgg)
+		AggCSS(&n.CSSAgg, parCSSAgg)
 	} else {
-		g.CSSAgg = nil
+		n.CSSAgg = nil
 	}
-	AggCSS(&g.CSSAgg, g.CSS)
-	g.StyleCSS(sv, g.CSSAgg)
+	AggCSS(&n.CSSAgg, n.CSS)
+	n.StyleCSS(sv, n.CSSAgg)
 
 	pc.StrokeStyle.Opacity *= pc.FontStyle.Opacity // applies to all
 	pc.FillStyle.Opacity *= pc.FontStyle.Opacity
@@ -354,7 +354,7 @@ func AggCSS(agg *map[string]any, css map[string]any) {
 
 // ApplyCSS applies css styles to given node,
 // using key to select sub-properties from overall properties list
-func (g *NodeBase) ApplyCSS(sv *SVG, key string, css map[string]any) bool {
+func (n *NodeBase) ApplyCSS(sv *SVG, key string, css map[string]any) bool {
 	pp, got := css[key]
 	if !got {
 		return false
@@ -363,10 +363,10 @@ func (g *NodeBase) ApplyCSS(sv *SVG, key string, css map[string]any) bool {
 	if !ok {
 		return false
 	}
-	pc := &g.Paint
+	pc := &n.Paint
 	ctxt := colors.Context(sv)
-	if g.Parent != sv.Root.This {
-		pp := g.Parent.(Node).AsNodeBase().PaintStyle()
+	if n.Parent != sv.Root.This {
+		pp := n.Parent.(Node).AsNodeBase().PaintStyle()
 		pc.SetStyleProperties(pp, pmap, ctxt)
 	} else {
 		pc.SetStyleProperties(nil, pmap, ctxt)
@@ -376,37 +376,37 @@ func (g *NodeBase) ApplyCSS(sv *SVG, key string, css map[string]any) bool {
 
 // StyleCSS applies css style properties to given SVG node
 // parsing out type, .class, and #name selectors
-func (g *NodeBase) StyleCSS(sv *SVG, css map[string]any) {
-	tyn := strings.ToLower(g.NodeType().Name) // type is most general, first
-	g.ApplyCSS(sv, tyn, css)
-	cln := "." + strings.ToLower(g.Class) // then class
-	g.ApplyCSS(sv, cln, css)
-	idnm := "#" + strings.ToLower(g.Name) // then name
-	g.ApplyCSS(sv, idnm, css)
+func (n *NodeBase) StyleCSS(sv *SVG, css map[string]any) {
+	tyn := strings.ToLower(n.NodeType().Name) // type is most general, first
+	n.ApplyCSS(sv, tyn, css)
+	cln := "." + strings.ToLower(n.Class) // then class
+	n.ApplyCSS(sv, cln, css)
+	idnm := "#" + strings.ToLower(n.Name) // then name
+	n.ApplyCSS(sv, idnm, css)
 }
 
 // LocalBBoxToWin converts a local bounding box to SVG coordinates
-func (g *NodeBase) LocalBBoxToWin(bb math32.Box2) image.Rectangle {
-	mxi := g.ParTransform(true) // include self
+func (n *NodeBase) LocalBBoxToWin(bb math32.Box2) image.Rectangle {
+	mxi := n.ParTransform(true) // include self
 	return bb.MulMatrix2(mxi).ToRect()
 }
 
-func (g *NodeBase) NodeBBox(sv *SVG) image.Rectangle {
+func (n *NodeBase) NodeBBox(sv *SVG) image.Rectangle {
 	rs := &sv.RenderState
 	return rs.LastRenderBBox
 }
 
-func (g *NodeBase) SetNodePos(pos math32.Vector2) {
+func (n *NodeBase) SetNodePos(pos math32.Vector2) {
 	// no-op by default
 }
 
-func (g *NodeBase) SetNodeSize(sz math32.Vector2) {
+func (n *NodeBase) SetNodeSize(sz math32.Vector2) {
 	// no-op by default
 }
 
 // LocalLineWidth returns the line width in local coordinates
-func (g *NodeBase) LocalLineWidth() float32 {
-	pc := &g.Paint
+func (n *NodeBase) LocalLineWidth() float32 {
+	pc := &n.Paint
 	if pc.StrokeStyle.Color == nil {
 		return 0
 	}
@@ -416,60 +416,60 @@ func (g *NodeBase) LocalLineWidth() float32 {
 // ComputeBBox is called by default in render to compute bounding boxes for
 // gui interaction -- can only be done in rendering because that is when all
 // the proper transforms are all in place -- VpBBox is intersected with parent SVG
-func (g *NodeBase) BBoxes(sv *SVG) {
-	if g.This == nil {
+func (n *NodeBase) BBoxes(sv *SVG) {
+	if n.This == nil {
 		return
 	}
-	ni := g.This.(Node)
-	g.BBox = ni.NodeBBox(sv)
-	g.BBox.Canon()
-	g.VisBBox = sv.Geom.SizeRect().Intersect(g.BBox)
+	ni := n.This.(Node)
+	n.BBox = ni.NodeBBox(sv)
+	n.BBox.Canon()
+	n.VisBBox = sv.Geom.SizeRect().Intersect(n.BBox)
 }
 
 // PushTransform checks our bounding box and visibility, returning false if
 // out of bounds.  If visible, pushes our transform.
 // Must be called as first step in Render.
-func (g *NodeBase) PushTransform(sv *SVG) (bool, *paint.Context) {
-	g.BBox = image.Rectangle{}
-	if g.Paint.Off || g == nil || g.This == nil {
+func (n *NodeBase) PushTransform(sv *SVG) (bool, *paint.Context) {
+	n.BBox = image.Rectangle{}
+	if n.Paint.Off || n == nil || n.This == nil {
 		return false, nil
 	}
-	ni := g.This.(Node)
+	ni := n.This.(Node)
 	// if g.IsInvisible() { // just the Invisible flag
 	// 	return false, nil
 	// }
 	lbb := ni.LocalBBox()
-	g.BBox = g.LocalBBoxToWin(lbb)
-	g.VisBBox = sv.Geom.SizeRect().Intersect(g.BBox)
-	nvis := g.VisBBox == image.Rectangle{}
+	n.BBox = n.LocalBBoxToWin(lbb)
+	n.VisBBox = sv.Geom.SizeRect().Intersect(n.BBox)
+	nvis := n.VisBBox == image.Rectangle{}
 	// g.SetInvisibleState(nvis) // don't set
 
-	if nvis && !g.isDef {
+	if nvis && !n.isDef {
 		return false, nil
 	}
 
 	rs := &sv.RenderState
-	rs.PushTransform(g.Paint.Transform)
+	rs.PushTransform(n.Paint.Transform)
 
-	pc := &paint.Context{rs, &g.Paint}
+	pc := &paint.Context{rs, &n.Paint}
 	return true, pc
 }
 
-func (g *NodeBase) RenderChildren(sv *SVG) {
-	for _, kid := range g.Children {
+func (n *NodeBase) RenderChildren(sv *SVG) {
+	for _, kid := range n.Children {
 		ni := kid.(Node)
 		ni.Render(sv)
 	}
 }
 
-func (g *NodeBase) Render(sv *SVG) {
-	vis, rs := g.PushTransform(sv)
+func (n *NodeBase) Render(sv *SVG) {
+	vis, rs := n.PushTransform(sv)
 	if !vis {
 		return
 	}
 	// pc := &g.Paint
 	// render path elements, then compute bbox, then fill / stroke
-	g.BBoxes(sv)
-	g.RenderChildren(sv)
+	n.BBoxes(sv)
+	n.RenderChildren(sv)
 	rs.PopTransform()
 }

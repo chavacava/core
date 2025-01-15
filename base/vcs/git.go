@@ -192,8 +192,8 @@ func (gr *GitRepo) RevertFile(fname string) error {
 }
 
 // UpdateVersion sets the version of a package currently checked out via Git.
-func (s *GitRepo) UpdateVersion(version string) error {
-	out, err := s.RunFromDir("git", "switch", "--detach", version)
+func (gr *GitRepo) UpdateVersion(version string) error {
+	out, err := gr.RunFromDir("git", "switch", "--detach", version)
 	if err != nil {
 		return vcs.NewLocalError("Unable to update checked out version", err, string(out))
 	}
